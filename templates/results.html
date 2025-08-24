@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .score { font-size: 2em; font-weight: bold; text-align: center; margin: 20px 0; }
+        .score.high { color: green; }
+        .score.medium { color: orange; }
+        .score.low { color: red; }
+        .section { margin: 20px 0; padding: 15px; border-radius: 8px; }
+        .strengths { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .weaknesses { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        .missing-skills { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+        .recommendations { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
+        ul { padding-left: 20px; }
+        li { margin: 8px 0; }
+        .back-btn { display: inline-block; margin: 20px 0; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        .action-section {
+            margin: 30px 0;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .generate-questions-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .generate-questions-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resume Analysis Results</h1>
+    <p><strong>Analyzed File:</strong> {{ filename }}</p>
+    
+    {% if analysis.error %}
+        <div class="section weaknesses">
+            <h3>Error</h3>
+            <p>{{ analysis.error }}</p>
+        </div>
+    {% else %}
+        <div class="score {% if analysis.match_score >= 70 %}high{% elif analysis.match_score >= 50 %}medium{% else %}low{% endif %}">
+            Match Score: {{ analysis.match_score }}/100
+        </div>
+        
+        <div class="section">
+            <h3>Summary</h3>
+            <p>{{ analysis.summary }}</p>
+        </div>
+        
+        <div class="section strengths">
+            <h3>Strengths</h3>
+            <ul>
+                {% for strength in analysis.strengths %}
+                    <li>{{ strength }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="section weaknesses">
+            <h3>Areas for Improvement</h3>
+            <ul>
+                {% for weakness in analysis.weaknesses %}
+                    <li>{{ weakness }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        {% if analysis.missing_skills %}
+        <div class="section missing-skills">
+            <h3>Missing Skills</h3>
+            <ul>
+                {% for skill in analysis.missing_skills %}
+                    <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="section recommendations">
+            <h3>Recommendations</h3>
+            <ul>
+                {% for recommendation in analysis.recommendations %}
+                    <li>{{ recommendation }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="action-section">
+            <h3>🎤 Ready for Interview Questions?</h3>
+            <p>Generate personalized interview questions based on this analysis</p>
+            
+            <form action="{{ url_for('generate_questions') }}" method="post" style="display: inline;">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <input type="hidden" name="job_description" value="{{ job_description }}">
+                <input type="hidden" name="file_path" value="{{ file_path if file_path else ('uploads/' + filename) }}">
+                <button type="submit" class="generate-questions-btn">
+                    🚀 Generate Interview Questions
+                </button>
+            </form>
+        </div>
+    {% endif %}
+    
+    <a href="{{ url_for('index') }}" class="back-btn">Analyze Another Resume</a>
+</body>
+</html>

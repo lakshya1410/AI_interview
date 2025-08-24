@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .interview-container {
+            display: flex;
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .ai-interviewer {
+            flex: 1;
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .ai-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .ai-status {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .chat-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .message.ai {
+            justify-content: flex-start;
+        }
+        
+        .message.candidate {
+            justify-content: flex-end;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
+        }
+        
+        .message.ai .message-content {
+            background: #e3f2fd;
+            color: #1565c0;
+            margin-left: 10px;
+        }
+        
+        .message.candidate .message-content {
+            background: #c8e6c9;
+            color: #2e7d32;
+            margin-right: 10px;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .message.ai .message-avatar {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .message.candidate .message-avatar {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .candidate-panel {
+            flex: 1;
+            background: #ffffff;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .candidate-header {
+            padding: 20px;
+            background: #007bff;
+            color: white;
+            text-align: center;
+        }
+        
+        .audio-controls {
+            padding: 30px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .record-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #dc3545;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+        }
+        
+        .record-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .record-btn.recording {
+            background: #ff4757;
+            animation: recordPulse 1s infinite;
+        }
+        
+        @keyframes recordPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+        }
+        
+        .text-input-area {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .text-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #218838;
+        }
+        
+        .submit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status-indicators {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-listening {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .interview-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: white;
+            color: #2c3e50;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 200px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #007bff;
+        }
+        
+        #candidateVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+        
+        .video-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .video-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .media-permissions {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .permission-btn {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .recording-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: none;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.5; }
+        }
+        
+        .interview-setup {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .setup-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .setup-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .start-interview-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .start-interview-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .audio-visualizer {
+            width: 100px;
+            height: 30px;
+            margin: 10px auto;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            gap: 2px;
+        }
+        
+        .audio-bar {
+            width: 4px;
+            background: #28a745;
+            border-radius: 2px;
+            transition: height 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Interview Setup Screen -->
+    <div id="interview-setup" class="interview-setup">
+        <h1>🎤 AI Interview Simulator</h1>
+        <p>Get ready for your personalized AI interview experience</p>
+        
+        <div class="media-permissions" id="permissions-panel">
+            <h3>📹 Camera & Microphone Setup</h3>
+            <p>We need access to your camera and microphone for the best interview experience</p>
+            <button class="permission-btn" onclick="requestPermissions()">Enable Camera & Microphone</button>
+            <div id="permission-status" style="margin-top: 15px;"></div>
+        </div>
+        
+        <div class="setup-form">
+            <div class="video-container" style="margin: 20px auto;">
+                <video id="setupVideo" autoplay muted></video>
+                <div class="recording-indicator" id="setup-recording">🔴 LIVE</div>
+            </div>
+            
+            <input type="text" id="candidate-name-input" class="setup-input" placeholder="Enter your full name" required>
+            
+            <div style="margin: 20px 0;">
+                <h4>Interview Details:</h4>
+                <p id="interview-info">Loading interview data...</p>
+            </div>
+            
+            <button class="start-interview-btn" id="start-btn" onclick="initializeInterview()" disabled>
+                🚀 Start Interview
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Interview Interface -->
+    <div class="interview-container hidden" id="interview-container">
+        <!-- AI Interviewer Panel -->
+        <div class="ai-interviewer">
+            <div class="ai-avatar">🤖</div>
+            <h2>AI Interviewer</h2>
+            <div class="ai-status">
+                <div class="status-indicators">
+                    <span class="status-indicator status-ready" id="ai-status">Ready to start</span>
+                </div>
+                <p id="ai-current-action">Waiting for interview to begin...</p>
+            </div>
+            
+            <div class="interview-controls">
+                <button class="control-btn" onclick="pauseInterview()">Pause</button>
+                <button class="control-btn" onclick="endInterview()">End Interview</button>
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div>
+                    <h3>Interview Conversation</h3>
+                    <p id="question-counter">Question 0 of 0</p>
+                </div>
+                <div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <small id="progress-text">0% Complete</small>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be added here -->
+            </div>
+        </div>
+        
+        <!-- Candidate Panel -->
+        <div class="candidate-panel">
+            <div class="candidate-header">
+                <h3>Candidate Response</h3>
+                <p id="candidate-display-name">Candidate</p>
+            </div>
+            
+            <!-- Video Feed -->
+            <div class="video-container">
+                <video id="candidateVideo" autoplay muted></video>
+                <div class="recording-indicator" id="video-recording">🔴 REC</div>
+                <div class="video-controls">
+                    <button class="video-btn" id="camera-toggle" onclick="toggleCamera()" title="Toggle Camera">📹</button>
+                    <button class="video-btn" id="mic-toggle" onclick="toggleMicrophone()" title="Toggle Microphone">🎤</button>
+                </div>
+            </div>
+            
+            <div class="audio-controls">
+                <h4>Voice Response</h4>
+                <button class="record-btn" id="record-btn" onclick="toggleRecording()">
+                    🎤
+                </button>
+                <div class="audio-visualizer" id="audio-visualizer">
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                </div>
+                <p id="recording-status">Click to start recording</p>
+                
+                <div class="status-indicators">
+                    <span class="status-indicator status-ready" id="voice-status">Ready</span>
+                </div>
+            </div>
+            
+            <div class="text-input-area">
+                <h4>Text Response</h4>
+                <textarea class="text-input" id="text-response" placeholder="Type your answer here or use voice recording above..."></textarea>
+                <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let interviewData = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let currentQuestion = null;
+        let mediaStream = null;
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let cameraEnabled = true;
+        let microphoneEnabled = true;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInterviewData();
+        });
+        
+        function loadInterviewData() {
+            // Get data from sessionStorage
+            const storedData = sessionStorage.getItem('interviewData');
+            if (storedData) {
+                interviewData = JSON.parse(storedData);
+                displayInterviewInfo();
+            } else {
+                document.getElementById('interview-info').textContent = 'No interview data found. Please generate questions first.';
+            }
+        }
+        
+        function displayInterviewInfo() {
+            if (!interviewData) return;
+            
+            const totalQuestions = interviewData.questions_data?.question_categories 
+                ? Object.values(interviewData.questions_data.question_categories)
+                    .reduce((sum, cat) => sum + cat.questions.length, 0)
+                : 0;
+                
+            document.getElementById('interview-info').innerHTML = `
+                <strong>Resume:</strong> ${interviewData.filename}<br>
+                <strong>Questions:</strong> ${totalQuestions}<br>
+                <strong>Match Score:</strong> ${interviewData.resume_analysis?.match_score || 'N/A'}/100
+            `;
+        }
+        
+        async function requestPermissions() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
+                });
+                
+                mediaStream = stream;
+                
+                // Show video in setup
+                const setupVideo = document.getElementById('setupVideo');
+                setupVideo.srcObject = stream;
+                
+                // Update permission status
+                document.getElementById('permission-status').innerHTML = 
+                    '<span style="color: green;">✅ Camera and microphone access granted!</span>';
+                
+                // Enable start button
+                document.getElementById('start-btn').disabled = false;
+                
+                // Setup audio visualization
+                setupAudioVisualization(stream);
+                
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+                document.getElementById('permission-status').innerHTML = 
+                    '<span style="color: red;">❌ Permission denied. Please allow access and refresh.</span>';
+            }
+        }
+        
+        function setupAudioVisualization(stream) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                visualizeAudio();
+            } catch (error) {
+                console.error('Audio visualization setup failed:', error);
+            }
+        }
+        
+        function visualizeAudio() {
+            if (!analyser) return;
+            
+            requestAnimationFrame(visualizeAudio);
+            analyser.getByteFrequencyData(dataArray);
+            
+            const bars = document.querySelectorAll('.audio-bar');
+            bars.forEach((bar, index) => {
+                const height = (dataArray[index * 10] / 255) * 30;
+                bar.style.height = Math.max(2, height) + 'px';
+            });
+        }
+        
+        async function initializeInterview() {
+            const candidateName = document.getElementById('candidate-name-input').value.trim();
+            if (!candidateName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            // Hide setup, show interview
+            document.getElementById('interview-setup').classList.add('hidden');
+            document.getElementById('interview-container').classList.remove('hidden');
+            
+            // Set up candidate video
+            if (mediaStream) {
+                document.getElementById('candidateVideo').srcObject = mediaStream;
+                document.getElementById('candidate-display-name').textContent = candidateName;
+            }
+            
+            // Start the interview
+            try {
+                const response = await fetch('/start-interview', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        candidate_name: candidateName,
+                        questions_data: interviewData.questions_data,
+                        resume_analysis: interviewData.resume_analysis
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    addMessage('ai', result.data.ai_message);
+                    await getNextQuestion();
+                } else {
+                    alert('Failed to start interview: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error starting interview: ' + error.message);
+            }
+        }
+        
+        function toggleCamera() {
+            cameraEnabled = !cameraEnabled;
+            const videoTrack = mediaStream?.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = cameraEnabled;
+                document.getElementById('camera-toggle').textContent = cameraEnabled ? '📹' : '📹❌';
+                document.getElementById('camera-toggle').style.background = cameraEnabled ? 'rgba(0,0,0,0.7)' : '#dc3545';
+            }
+        }
+        
+        function toggleMicrophone() {
+            microphoneEnabled = !microphoneEnabled;
+            const audioTrack = mediaStream?.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = microphoneEnabled;
+                document.getElementById('mic-toggle').textContent = microphoneEnabled ? '🎤' : '🎤❌';
+                document.getElementById('mic-toggle').style.background = microphoneEnabled ? 'rgba(0,0,0,0.7)' : '#dc3545';
+            }
+        }
+        
+        async function getNextQuestion() {
+            const response = await fetch('/get-question');
+            const result = await response.json();
+            
+            if (result.success) {
+                currentQuestion = result.data;
+                if (currentQuestion.status === 'active') {
+                    addMessage('ai', currentQuestion.ai_message);
+                    updateProgress(currentQuestion.question_number, currentQuestion.total_questions);
+                } else if (currentQuestion.status === 'completed') {
+                    addMessage('ai', 'Interview completed! Generating your report...');
+                    await generateReport();
+                }
+            }
+        }
+        
+        function addMessage(sender, content) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${sender === 'ai' ? 'AI' : 'You'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateProgress(current, total) {
+            const progress = (current / total) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('progress-text').textContent = `${Math.round(progress)}% Complete`;
+            document.getElementById('question-counter').textContent = `Question ${current} of ${total}`;
+        }
+        
+        async function toggleRecording() {
+            if (!isRecording) {
+                await startRecording();
+            } else {
+                await stopRecording();
+            }
+        }
+        
+        async function startRecording() {
+            if (!mediaStream || !microphoneEnabled) {
+                alert('Microphone not available. Please enable microphone access.');
+                return;
+            }
+            
+            try {
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'audio/webm' });
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    await transcribeAudio(blob);
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Update UI
+                document.getElementById('record-btn').classList.add('recording');
+                document.getElementById('recording-status').textContent = 'Recording... Click to stop';
+                document.getElementById('voice-status').textContent = 'Recording';
+                document.getElementById('voice-status').className = 'status-indicator status-listening';
+                document.getElementById('video-recording').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                alert('Could not start recording. Please check permissions.');
+            }
+        }
+        
+        async function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                
+                // Update UI
+                document.getElementById('record-btn').classList.remove('recording');
+                document.getElementById('recording-status').textContent = 'Processing...';
+                document.getElementById('voice-status').textContent = 'Processing';
+                document.getElementById('voice-status').className = 'status-indicator status-processing';
+                document.getElementById('video-recording').style.display = 'none';
+            }
+        }
+        
+        async function transcribeAudio(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+            
+            try {
+                const response = await fetch('/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('text-response').value = result.transcription;
+                    document.getElementById('recording-status').textContent = 'Transcription complete';
+                    document.getElementById('voice-status').textContent = 'Ready';
+                    document.getElementById('voice-status').className = 'status-indicator status-ready';
+                } else {
+                    console.error('Transcription error:', result.error);
+                    document.getElementById('recording-status').textContent = 'Transcription failed - please type your response';
+                }
+            } catch (error) {
+                console.error('Error transcribing audio:', error);
+                document.getElementById('recording-status').textContent = 'Transcription failed - please type your response';
+            }
+        }
+        
+        async function submitAnswer() {
+            const answerText = document.getElementById('text-response').value.trim();
+            if (!answerText) {
+                alert('Please provide an answer before submitting');
+                return;
+            }
+            
+            // Add candidate message to chat
+            addMessage('candidate', answerText);
+            
+            // Clear text input
+            document.getElementById('text-response').value = '';
+            
+            // Submit answer
+            const response = await fetch('/submit-answer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    answer_text: answerText,
+                    audio_duration: 0
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                if (result.data.status === 'continuing') {
+                    if (result.data.ai_response) {
+                        addMessage('ai', result.data.ai_response);
+                    }
+                    setTimeout(() => {
+                        if (result.data.next_question?.status === 'active') {
+                            addMessage('ai', result.data.next_question.ai_message);
+                            updateProgress(result.data.next_question.question_number, result.data.next_question.total_questions);
+                        }
+                    }, 1000);
+                } else if (result.data.status === 'completed') {
+                    addMessage('ai', result.data.ai_message);
+                    setTimeout(generateReport, 2000);
+                }
+            }
+        }
+        
+        function pauseInterview() {
+            if (isRecording) {
+                stopRecording();
+            }
+            // Add pause functionality here
+        }
+        
+        async function endInterview() {
+            if (confirm('Are you sure you want to end the interview?')) {
+                // Stop recording if active
+                if (isRecording) {
+                    await stopRecording();
+                }
+                
+                // Stop media streams
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                
+                const response = await fetch('/end-interview', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    addMessage('ai', 'Interview ended. Generating your report...');
+                    setTimeout(generateReport, 2000);
+                }
+            }
+        }
+        
+        async function generateReport() {
+            document.getElementById('ai-current-action').textContent = 'Analyzing your responses...';
+            document.getElementById('ai-status').textContent = 'Generating Report';
+            document.getElementById('ai-status').className = 'status-indicator status-processing';
+            
+            const response = await fetch('/generate-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                // Store report and redirect
+                sessionStorage.setItem('interviewReport', JSON.stringify(result.data));
+                window.location.href = '/interview-report';
+            } else {
+                addMessage('ai', 'Sorry, there was an error generating your report.');
+            }
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
