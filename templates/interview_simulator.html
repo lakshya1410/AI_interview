@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Interview Simulator</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,16 +18,16 @@
         
         .interview-container {
             display: flex;
-            width: 95%;
+            width: 95vw;
             max-width: 1400px;
             height: 90vh;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
             overflow: hidden;
         }
         
-        .ai-interviewer {
+        .ai-panel {
             flex: 1;
             background: linear-gradient(145deg, #2c3e50, #34495e);
             color: white;
@@ -40,21 +40,27 @@
         }
         
         .ai-avatar {
-            width: 150px;
-            height: 150px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             background: linear-gradient(45deg, #3498db, #2980b9);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            font-size: 80px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .ai-avatar.speaking {
+            animation: speak 1.5s ease-in-out infinite alternate;
+            box-shadow: 0 0 40px rgba(52, 152, 219, 0.6);
+        }
+        
+        @keyframes speak {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
         }
         
         .ai-status {
@@ -62,247 +68,153 @@
             margin-top: 20px;
         }
         
+        .status-indicator {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .status-ready { background: #27ae60; }
+        .status-speaking { background: #3498db; animation: pulse 1s infinite; }
+        .status-listening { background: #f39c12; }
+        .status-processing { background: #e74c3c; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
         .chat-area {
             flex: 2;
             display: flex;
             flex-direction: column;
-            height: 100%;
         }
         
         .chat-header {
             background: #f8f9fa;
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
+            padding: 25px;
+            border-bottom: 2px solid #dee2e6;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .progress-bar {
-            width: 200px;
-            height: 8px;
+            width: 250px;
+            height: 12px;
             background: #e9ecef;
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #28a745, #20c997);
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.5s ease;
+            border-radius: 6px;
         }
         
         .chat-messages {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background: #f8f9fa;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
         }
         
         .message {
             margin-bottom: 20px;
             display: flex;
             align-items: flex-start;
+            animation: messageSlide 0.3s ease-out;
         }
         
-        .message.ai {
-            justify-content: flex-start;
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .message.candidate {
-            justify-content: flex-end;
-        }
+        .message.ai { justify-content: flex-start; }
+        .message.candidate { justify-content: flex-end; }
         
         .message-content {
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 20px;
+            max-width: 75%;
+            padding: 18px 24px;
+            border-radius: 25px;
             word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .message.ai .message-content {
-            background: #e3f2fd;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
             color: #1565c0;
-            margin-left: 10px;
+            margin-left: 15px;
         }
         
         .message.candidate .message-content {
-            background: #c8e6c9;
+            background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
             color: #2e7d32;
-            margin-right: 10px;
+            margin-right: 15px;
         }
         
         .message-avatar {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .message.ai .message-avatar {
-            background: #2196f3;
+            background: linear-gradient(45deg, #2196f3, #1976d2);
             color: white;
         }
         
         .message.candidate .message-avatar {
-            background: #4caf50;
+            background: linear-gradient(45deg, #4caf50, #388e3c);
             color: white;
         }
         
         .candidate-panel {
             flex: 1;
             background: #ffffff;
-            border-left: 1px solid #dee2e6;
+            border-left: 2px solid #dee2e6;
             display: flex;
             flex-direction: column;
         }
         
         .candidate-header {
-            padding: 20px;
-            background: #007bff;
+            padding: 25px;
+            background: linear-gradient(45deg, #007bff, #0056b3);
             color: white;
             text-align: center;
-        }
-        
-        .audio-controls {
-            padding: 30px;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 20px;
-        }
-        
-        .record-btn {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: #dc3545;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0 auto;
-        }
-        
-        .record-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .record-btn.recording {
-            background: #ff4757;
-            animation: recordPulse 1s infinite;
-        }
-        
-        @keyframes recordPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
-        }
-        
-        .text-input-area {
-            padding: 20px;
-            border-top: 1px solid #dee2e6;
-        }
-        
-        .text-input {
-            width: 100%;
-            min-height: 100px;
-            padding: 15px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            resize: vertical;
-            font-family: inherit;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 15px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.3s;
-        }
-        
-        .submit-btn:hover {
-            background: #218838;
-        }
-        
-        .submit-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-        }
-        
-        .status-indicators {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        
-        .status-indicator {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .status-listening {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-processing {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .status-ready {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .interview-controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .control-btn {
-            padding: 10px 20px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .control-btn:hover {
-            background: white;
-            color: #2c3e50;
         }
         
         .video-container {
             position: relative;
-            width: 200px;
-            height: 150px;
+            width: 220px;
+            height: 165px;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
             border: 3px solid #007bff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
         #candidateVideo {
@@ -312,121 +224,276 @@
             background: #000;
         }
         
-        .video-controls {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-        }
-        
-        .video-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .media-permissions {
-            text-align: center;
-            padding: 20px;
-            margin: 20px 0;
-            background: #fff3cd;
-            border-radius: 8px;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .permission-btn {
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        
         .recording-indicator {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 12px;
+            left: 12px;
             background: #dc3545;
             color: white;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 15px;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: bold;
             display: none;
-            animation: blink 1s infinite;
+            animation: recordBlink 1s infinite;
         }
         
-        @keyframes blink {
+        @keyframes recordBlink {
             0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.5; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .audio-controls {
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .record-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            border: none;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .record-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(220, 53, 69, 0.4);
+        }
+        
+        .record-btn.recording {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            animation: recordPulse 1.5s infinite;
+        }
+        
+        @keyframes recordPulse {
+            0% { transform: scale(1); box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 71, 87, 0.3); }
+            100% { transform: scale(1); box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3); }
+        }
+        
+        .audio-visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 3px;
+            height: 40px;
+            margin: 15px 0;
+        }
+        
+        .audio-bar {
+            width: 4px;
+            background: linear-gradient(to top, #28a745, #20c997);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+            min-height: 4px;
+        }
+        
+        .text-input-area {
+            padding: 25px;
+            border-top: 2px solid #dee2e6;
+        }
+        
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 18px;
+            border: 2px solid #ced4da;
+            border-radius: 12px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .interview-setup {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
+            padding: 40px;
+            border-radius: 20px;
             text-align: center;
             margin: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 600px;
         }
         
         .setup-form {
-            max-width: 400px;
+            max-width: 450px;
             margin: 0 auto;
         }
         
         .setup-input {
             width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 18px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 12px;
             font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .setup-input:focus {
+            outline: none;
+            border-color: #007bff;
         }
         
         .start-interview-btn {
             width: 100%;
-            padding: 20px;
+            padding: 22px;
             background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.3s;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
         }
         
         .start-interview-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+        }
+        
+        .start-interview-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .permission-panel {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .permission-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .permission-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
         }
         
-        .hidden {
-            display: none;
+        .control-btn {
+            padding: 12px 24px;
+            border: 2px solid white;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
-        .audio-visualizer {
-            width: 100px;
-            height: 30px;
-            margin: 10px auto;
+        .control-btn:hover {
+            background: white;
+            color: #2c3e50;
+        }
+        
+        .interview-controls {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
             display: flex;
-            align-items: end;
-            justify-content: center;
-            gap: 2px;
+            gap: 15px;
         }
         
-        .audio-bar {
-            width: 4px;
-            background: #28a745;
-            border-radius: 2px;
-            transition: height 0.1s;
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .audio-player {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .play-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -434,24 +501,24 @@
     <!-- Interview Setup Screen -->
     <div id="interview-setup" class="interview-setup">
         <h1>🎤 AI Interview Simulator</h1>
-        <p>Get ready for your personalized AI interview experience</p>
+        <p>Get ready for your personalized AI interview experience with real-time voice interaction</p>
         
-        <div class="media-permissions" id="permissions-panel">
+        <div class="permission-panel" id="permissions-panel">
             <h3>📹 Camera & Microphone Setup</h3>
-            <p>We need access to your camera and microphone for the best interview experience</p>
+            <p>We need access to your camera and microphone for the complete interview experience</p>
             <button class="permission-btn" onclick="requestPermissions()">Enable Camera & Microphone</button>
             <div id="permission-status" style="margin-top: 15px;"></div>
         </div>
         
         <div class="setup-form">
-            <div class="video-container" style="margin: 20px auto;">
+            <div class="video-container" style="margin: 25px auto;">
                 <video id="setupVideo" autoplay muted></video>
                 <div class="recording-indicator" id="setup-recording">🔴 LIVE</div>
             </div>
             
             <input type="text" id="candidate-name-input" class="setup-input" placeholder="Enter your full name" required>
             
-            <div style="margin: 20px 0;">
+            <div style="margin: 25px 0;">
                 <h4>Interview Details:</h4>
                 <p id="interview-info">Loading interview data...</p>
             </div>
@@ -465,19 +532,23 @@
     <!-- Main Interview Interface -->
     <div class="interview-container hidden" id="interview-container">
         <!-- AI Interviewer Panel -->
-        <div class="ai-interviewer">
-            <div class="ai-avatar">🤖</div>
+        <div class="ai-panel">
+            <div class="ai-avatar" id="ai-avatar">🤖</div>
             <h2>AI Interviewer</h2>
             <div class="ai-status">
-                <div class="status-indicators">
-                    <span class="status-indicator status-ready" id="ai-status">Ready to start</span>
-                </div>
+                <div class="status-indicator status-ready" id="ai-status">Ready to start</div>
                 <p id="ai-current-action">Waiting for interview to begin...</p>
+                
+                <!-- Audio player for AI speech -->
+                <div class="audio-player" id="ai-audio-player" style="display: none;">
+                    <button class="play-btn" id="play-ai-audio" onclick="playAIAudio()">▶</button>
+                    <span id="audio-status">Click to play AI response</span>
+                </div>
             </div>
             
             <div class="interview-controls">
-                <button class="control-btn" onclick="pauseInterview()">Pause</button>
-                <button class="control-btn" onclick="endInterview()">End Interview</button>
+                <button class="control-btn" onclick="toggleAudio()">🔊 Audio</button>
+                <button class="control-btn" onclick="endInterview()">🛑 End</button>
             </div>
         </div>
         
@@ -488,7 +559,7 @@
                     <h3>Interview Conversation</h3>
                     <p id="question-counter">Question 0 of 0</p>
                 </div>
-                <div>
+                <div class="progress-container">
                     <div class="progress-bar">
                         <div class="progress-fill" id="progress-fill"></div>
                     </div>
@@ -497,7 +568,7 @@
             </div>
             
             <div class="chat-messages" id="chat-messages">
-                <!-- Messages will be added here -->
+                <!-- Messages will be added here dynamically -->
             </div>
         </div>
         
@@ -512,10 +583,6 @@
             <div class="video-container">
                 <video id="candidateVideo" autoplay muted></video>
                 <div class="recording-indicator" id="video-recording">🔴 REC</div>
-                <div class="video-controls">
-                    <button class="video-btn" id="camera-toggle" onclick="toggleCamera()" title="Toggle Camera">📹</button>
-                    <button class="video-btn" id="mic-toggle" onclick="toggleMicrophone()" title="Toggle Microphone">🎤</button>
-                </div>
             </div>
             
             <div class="audio-controls">
@@ -529,23 +596,32 @@
                     <div class="audio-bar"></div>
                     <div class="audio-bar"></div>
                     <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
                 </div>
                 <p id="recording-status">Click to start recording</p>
-                
-                <div class="status-indicators">
-                    <span class="status-indicator status-ready" id="voice-status">Ready</span>
-                </div>
             </div>
             
             <div class="text-input-area">
                 <h4>Text Response</h4>
+                <div id="live-transcription" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin-bottom: 10px; min-height: 60px; display: none;">
+                    <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">🎤 Live Transcription:</div>
+                    <div id="live-text" style="font-style: italic; color: #495057;"></div>
+                </div>
                 <textarea class="text-input" id="text-response" placeholder="Type your answer here or use voice recording above..."></textarea>
-                <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="submit-btn" id="answered-btn" onclick="finishAnswering()" style="background: linear-gradient(45deg, #28a745, #20c997); display: none;">
+                        ✅ I've Answered
+                    </button>
+                    <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">📤 Submit Answer</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Global variables
         let interviewData = null;
         let isRecording = false;
         let mediaRecorder = null;
@@ -555,8 +631,11 @@
         let audioContext = null;
         let analyser = null;
         let dataArray = null;
-        let cameraEnabled = true;
-        let microphoneEnabled = true;
+        let currentAIAudio = null;
+        let audioEnabled = true;
+        let liveTranscription = '';
+        let transcriptionInterval = null;
+        let recognition = null;
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -564,13 +643,13 @@
         });
         
         function loadInterviewData() {
-            // Get data from sessionStorage
             const storedData = sessionStorage.getItem('interviewData');
             if (storedData) {
                 interviewData = JSON.parse(storedData);
                 displayInterviewInfo();
             } else {
-                document.getElementById('interview-info').textContent = 'No interview data found. Please generate questions first.';
+                document.getElementById('interview-info').innerHTML = 
+                    '<span style="color: #dc3545;">No interview data found. Please generate questions first.</span>';
             }
         }
         
@@ -583,9 +662,9 @@
                 : 0;
                 
             document.getElementById('interview-info').innerHTML = `
-                <strong>Resume:</strong> ${interviewData.filename}<br>
-                <strong>Questions:</strong> ${totalQuestions}<br>
-                <strong>Match Score:</strong> ${interviewData.resume_analysis?.match_score || 'N/A'}/100
+                <strong>📄 Resume:</strong> ${interviewData.filename}<br>
+                <strong>❓ Questions:</strong> ${totalQuestions}<br>
+                <strong>🎯 Match Score:</strong> ${interviewData.resume_analysis?.match_score || 'N/A'}/100
             `;
         }
         
@@ -601,10 +680,11 @@
                 // Show video in setup
                 const setupVideo = document.getElementById('setupVideo');
                 setupVideo.srcObject = stream;
+                document.getElementById('setup-recording').style.display = 'block';
                 
                 // Update permission status
                 document.getElementById('permission-status').innerHTML = 
-                    '<span style="color: green;">✅ Camera and microphone access granted!</span>';
+                    '<div class="success-message">✅ Camera and microphone access granted!</div>';
                 
                 // Enable start button
                 document.getElementById('start-btn').disabled = false;
@@ -615,7 +695,7 @@
             } catch (error) {
                 console.error('Error accessing media devices:', error);
                 document.getElementById('permission-status').innerHTML = 
-                    '<span style="color: red;">❌ Permission denied. Please allow access and refresh.</span>';
+                    '<div class="error-message">❌ Permission denied. Please allow access and refresh the page.</div>';
             }
         }
         
@@ -644,8 +724,8 @@
             
             const bars = document.querySelectorAll('.audio-bar');
             bars.forEach((bar, index) => {
-                const height = (dataArray[index * 10] / 255) * 30;
-                bar.style.height = Math.max(2, height) + 'px';
+                const height = (dataArray[index * 5] / 255) * 35;
+                bar.style.height = Math.max(4, height) + 'px';
             });
         }
         
@@ -653,6 +733,11 @@
             const candidateName = document.getElementById('candidate-name-input').value.trim();
             if (!candidateName) {
                 alert('Please enter your name');
+                return;
+            }
+            
+            if (!interviewData) {
+                alert('Interview data not found. Please generate questions first.');
                 return;
             }
             
@@ -668,6 +753,8 @@
             
             // Start the interview
             try {
+                updateAIStatus('processing', 'Starting interview...');
+                
                 const response = await fetch('/start-interview', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -679,61 +766,167 @@
                 });
                 
                 const result = await response.json();
-                if (result.success) {
+                if (result.success && result.data) {
                     addMessage('ai', result.data.ai_message);
+                    handleAIAudio(result.data.ai_audio);
                     await getNextQuestion();
                 } else {
-                    alert('Failed to start interview: ' + result.error);
+                    showError('Failed to start interview: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Error starting interview: ' + error.message);
+                showError('Error starting interview: ' + error.message);
             }
         }
         
-        function toggleCamera() {
-            cameraEnabled = !cameraEnabled;
-            const videoTrack = mediaStream?.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = cameraEnabled;
-                document.getElementById('camera-toggle').textContent = cameraEnabled ? '📹' : '📹❌';
-                document.getElementById('camera-toggle').style.background = cameraEnabled ? 'rgba(0,0,0,0.7)' : '#dc3545';
+        function updateAIStatus(type, message) {
+            const statusEl = document.getElementById('ai-status');
+            const actionEl = document.getElementById('ai-current-action');
+            const avatar = document.getElementById('ai-avatar');
+            
+            statusEl.className = `status-indicator status-${type}`;
+            actionEl.textContent = message;
+            
+            if (type === 'speaking') {
+                avatar.classList.add('speaking');
+                statusEl.textContent = 'Speaking';
+            } else {
+                avatar.classList.remove('speaking');
+                statusEl.textContent = type === 'ready' ? 'Ready' : 
+                                    type === 'listening' ? 'Listening' : 
+                                    type === 'processing' ? 'Processing' : 'Ready';
             }
         }
         
-        function toggleMicrophone() {
-            microphoneEnabled = !microphoneEnabled;
-            const audioTrack = mediaStream?.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = microphoneEnabled;
-                document.getElementById('mic-toggle').textContent = microphoneEnabled ? '🎤' : '🎤❌';
-                document.getElementById('mic-toggle').style.background = microphoneEnabled ? 'rgba(0,0,0,0.7)' : '#dc3545';
+        function handleAIAudio(audioData) {
+            if (!audioData) {
+                return;
             }
+            
+            if (audioData.use_browser_tts && audioData.text) {
+                // Use browser text-to-speech
+                speakText(audioData.text);
+            } else if (audioData.audio_data && audioData.success) {
+                // Use provided audio data
+                playAudioData(audioData.audio_data, audioData.format);
+            } else if (audioData.text) {
+                // Fallback to browser TTS if no audio data
+                speakText(audioData.text);
+            }
+        }
+        
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                updateAIStatus('speaking', 'Speaking...');
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                
+                utterance.onend = () => {
+                    updateAIStatus('ready', 'Waiting for your response');
+                    // Auto-start recording after AI finishes speaking
+                    setTimeout(() => {
+                        if (!isRecording) {
+                            startRecording();
+                        }
+                    }, 1000);
+                };
+                
+                utterance.onerror = () => {
+                    updateAIStatus('ready', 'Audio playback failed');
+                };
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function playAudioData(base64Data, format) {
+            try {
+                const audioBlob = base64ToBlob(base64Data, `audio/${format}`);
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                if (currentAIAudio) {
+                    currentAIAudio.pause();
+                }
+                
+                currentAIAudio = new Audio(audioUrl);
+                currentAIAudio.onplay = () => updateAIStatus('speaking', 'Speaking...');
+                currentAIAudio.onended = () => {
+                    updateAIStatus('ready', 'Waiting for your response');
+                    URL.revokeObjectURL(audioUrl);
+                    // Auto-start recording after AI finishes speaking
+                    setTimeout(() => {
+                        if (!isRecording) {
+                            startRecording();
+                        }
+                    }, 1000);
+                };
+                currentAIAudio.onerror = () => {
+                    updateAIStatus('ready', 'Audio playback failed');
+                    URL.revokeObjectURL(audioUrl);
+                };
+                
+                currentAIAudio.play();
+            } catch (error) {
+                console.error('Audio playback error:', error);
+                updateAIStatus('ready', 'Audio playback failed');
+            }
+        }
+        
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], {type: mimeType});
         }
         
         async function getNextQuestion() {
-            const response = await fetch('/get-question');
-            const result = await response.json();
-            
-            if (result.success) {
-                currentQuestion = result.data;
-                if (currentQuestion.status === 'active') {
-                    addMessage('ai', currentQuestion.ai_message);
-                    updateProgress(currentQuestion.question_number, currentQuestion.total_questions);
-                } else if (currentQuestion.status === 'completed') {
-                    addMessage('ai', 'Interview completed! Generating your report...');
-                    await generateReport();
+            try {
+                const response = await fetch('/get-question');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentQuestion = result.data;
+                    if (currentQuestion.status === 'active') {
+                        addMessage('ai', currentQuestion.ai_message);
+                        handleAIAudio(currentQuestion.ai_audio);
+                        updateProgress(currentQuestion.question_number, currentQuestion.total_questions);
+                    } else if (currentQuestion.status === 'completed') {
+                        addMessage('ai', 'Interview completed! Generating your comprehensive report...');
+                        setTimeout(() => generateReport(), 3000);
+                    }
+                } else {
+                    showError('Failed to get next question: ' + result.error);
                 }
+            } catch (error) {
+                showError('Error getting next question: ' + error.message);
             }
         }
         
-        function addMessage(sender, content) {
+        function addMessage(sender, content, audioData = null) {
             const chatMessages = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
             
+            let audioPlayer = '';
+            if (audioData && audioData.transcribed_text) {
+                audioPlayer = `
+                    <div style="margin-top: 10px; font-size: 12px; opacity: 0.7;">
+                        🎤 Voice message (${audioData.duration}s)
+                    </div>
+                `;
+            }
+            
             messageDiv.innerHTML = `
-                <div class="message-avatar">${sender === 'ai' ? 'AI' : 'You'}</div>
-                <div class="message-content">${content}</div>
+                <div class="message-avatar">${sender === 'ai' ? '🤖' : '👤'}</div>
+                <div class="message-content">
+                    ${content}
+                    ${audioPlayer}
+                </div>
             `;
             
             chatMessages.appendChild(messageDiv);
@@ -756,13 +949,18 @@
         }
         
         async function startRecording() {
-            if (!mediaStream || !microphoneEnabled) {
-                alert('Microphone not available. Please enable microphone access.');
+            if (!mediaStream) {
+                showError('Microphone not available. Please enable microphone access.');
                 return;
             }
             
             try {
-                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'audio/webm' });
+                // Create new MediaRecorder with better format
+                mediaRecorder = new MediaRecorder(mediaStream, { 
+                    mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+                        ? 'audio/webm;codecs=opus' 
+                        : 'audio/webm'
+                });
                 recordedChunks = [];
                 
                 mediaRecorder.ondataavailable = (event) => {
@@ -779,16 +977,80 @@
                 mediaRecorder.start();
                 isRecording = true;
                 
+                // Start live transcription
+                startLiveTranscription();
+                
                 // Update UI
                 document.getElementById('record-btn').classList.add('recording');
-                document.getElementById('recording-status').textContent = 'Recording... Click to stop';
-                document.getElementById('voice-status').textContent = 'Recording';
-                document.getElementById('voice-status').className = 'status-indicator status-listening';
+                document.getElementById('recording-status').textContent = '🎙️ Recording... Click to stop or "I\'ve Answered"';
                 document.getElementById('video-recording').style.display = 'block';
+                document.getElementById('live-transcription').style.display = 'block';
+                document.getElementById('answered-btn').style.display = 'inline-block';
+                updateAIStatus('listening', 'Listening to your response...');
                 
             } catch (error) {
                 console.error('Error starting recording:', error);
-                alert('Could not start recording. Please check permissions.');
+                showError('Could not start recording. Please check permissions.');
+            }
+        }
+
+        function startLiveTranscription() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    const currentLive = finalTranscript + interimTranscript;
+                    document.getElementById('live-text').textContent = currentLive;
+                    
+                    // Update text area with final transcription only
+                    if (finalTranscript) {
+                        const currentValue = document.getElementById('text-response').value;
+                        const newValue = currentValue + finalTranscript;
+                        document.getElementById('text-response').value = newValue;
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.log('Live transcription error:', event.error);
+                    if (event.error === 'no-speech') {
+                        document.getElementById('live-text').textContent = 'No speech detected...';
+                    }
+                };
+                
+                recognition.onend = () => {
+                    // Restart recognition if still recording
+                    if (isRecording && recognition) {
+                        recognition.start();
+                    }
+                };
+                
+                recognition.start();
+            } else {
+                document.getElementById('live-text').textContent = 'Live transcription not supported in this browser';
+            }
+        }
+
+        function stopLiveTranscription() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
             }
         }
         
@@ -797,16 +1059,21 @@
                 mediaRecorder.stop();
                 isRecording = false;
                 
+                // Stop live transcription
+                stopLiveTranscription();
+                
                 // Update UI
                 document.getElementById('record-btn').classList.remove('recording');
-                document.getElementById('recording-status').textContent = 'Processing...';
-                document.getElementById('voice-status').textContent = 'Processing';
-                document.getElementById('voice-status').className = 'status-indicator status-processing';
+                document.getElementById('recording-status').textContent = '⏳ Processing audio...';
                 document.getElementById('video-recording').style.display = 'none';
+                document.getElementById('live-transcription').style.display = 'none';
+                document.getElementById('answered-btn').style.display = 'none';
+                updateAIStatus('processing', 'Processing your audio response...');
             }
         }
         
         async function transcribeAudio(audioBlob) {
+            console.log('Starting transcription...', audioBlob.size, 'bytes');
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
             
@@ -817,121 +1084,149 @@
                 });
                 
                 const result = await response.json();
-                if (result.success) {
-                    document.getElementById('text-response').value = result.transcription;
-                    document.getElementById('recording-status').textContent = 'Transcription complete';
-                    document.getElementById('voice-status').textContent = 'Ready';
-                    document.getElementById('voice-status').className = 'status-indicator status-ready';
+                console.log('Transcription result:', result);
+                
+                if (result.success && result.transcription) {
+                    // If there's existing text from live transcription, append to it
+                    const currentText = document.getElementById('text-response').value;
+                    const finalText = currentText + (currentText ? ' ' : '') + result.transcription;
+                    document.getElementById('text-response').value = finalText;
+                    
+                    document.getElementById('recording-status').textContent = '✅ Transcription complete - Review and submit';
+                    updateAIStatus('ready', 'Ready to submit your response');
                 } else {
                     console.error('Transcription error:', result.error);
-                    document.getElementById('recording-status').textContent = 'Transcription failed - please type your response';
+                    const errorMsg = result.error || 'Transcription failed';
+                    document.getElementById('recording-status').textContent = '❌ ' + errorMsg;
+                    if (result.fallback_to_text) {
+                        document.getElementById('recording-status').textContent += ' - Please type your response';
+                    }
+                    updateAIStatus('ready', 'Please type your response');
                 }
             } catch (error) {
                 console.error('Error transcribing audio:', error);
-                document.getElementById('recording-status').textContent = 'Transcription failed - please type your response';
+                document.getElementById('recording-status').textContent = '❌ Network error - please type your response';
+                updateAIStatus('ready', 'Please type your response');
             }
         }
         
         async function submitAnswer() {
             const answerText = document.getElementById('text-response').value.trim();
             if (!answerText) {
-                alert('Please provide an answer before submitting');
+                showError('Please provide an answer before submitting');
                 return;
             }
             
             // Add candidate message to chat
             addMessage('candidate', answerText);
             
-            // Clear text input
+            // Clear text input and reset recording status
             document.getElementById('text-response').value = '';
+            document.getElementById('recording-status').textContent = 'Click to start recording';
+            document.getElementById('live-transcription').style.display = 'none';
+            document.getElementById('answered-btn').style.display = 'none';
             
-            // Submit answer
-            const response = await fetch('/submit-answer', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    answer_text: answerText,
-                    audio_duration: 0
-                })
-            });
+            updateAIStatus('processing', 'Analyzing your response...');
             
-            const result = await response.json();
-            if (result.success) {
-                if (result.data.status === 'continuing') {
-                    if (result.data.ai_response) {
-                        addMessage('ai', result.data.ai_response);
-                    }
-                    setTimeout(() => {
-                        if (result.data.next_question?.status === 'active') {
-                            addMessage('ai', result.data.next_question.ai_message);
-                            updateProgress(result.data.next_question.question_number, result.data.next_question.total_questions);
-                        }
-                    }, 1000);
-                } else if (result.data.status === 'completed') {
-                    addMessage('ai', result.data.ai_message);
-                    setTimeout(generateReport, 2000);
-                }
-            }
-        }
-        
-        function pauseInterview() {
-            if (isRecording) {
-                stopRecording();
-            }
-            // Add pause functionality here
-        }
-        
-        async function endInterview() {
-            if (confirm('Are you sure you want to end the interview?')) {
-                // Stop recording if active
-                if (isRecording) {
-                    await stopRecording();
-                }
-                
-                // Stop media streams
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(track => track.stop());
-                }
-                
-                const response = await fetch('/end-interview', {
+            try {
+                const response = await fetch('/submit-answer', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'}
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        answer_text: answerText,
+                        audio_duration: 0
+                    })
                 });
                 
                 const result = await response.json();
                 if (result.success) {
-                    addMessage('ai', 'Interview ended. Generating your report...');
-                    setTimeout(generateReport, 2000);
-                }
-            }
-        }
-        
-        async function generateReport() {
-            document.getElementById('ai-current-action').textContent = 'Analyzing your responses...';
-            document.getElementById('ai-status').textContent = 'Generating Report';
-            document.getElementById('ai-status').className = 'status-indicator status-processing';
-            
-            const response = await fetch('/generate-report', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'}
-            });
-            
-            const result = await response.json();
-            if (result.success) {
-                // Store report and redirect
-                sessionStorage.setItem('interviewReport', JSON.stringify(result.data));
-                window.location.href = '/interview-report';
-            } else {
-                addMessage('ai', 'Sorry, there was an error generating your report.');
-            }
-        }
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', function() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-            }
-        });
-    </script>
-</body>
-</html>
+                    if (result.data.status === 'continuing') {
+                        // Add AI response
+                        if (result.data.ai_response) {
+                            addMessage('ai', result.data.ai_response);
+                            handleAIAudio(result.data.ai_audio);
+                        }
+                        
+                                                // Show next question after a brief pause
+                                                setTimeout(() => {
+                                                    if (result.data.next_question?.status === 'active') {
+                                                        addMessage('ai', result.data.next_question.ai_message);
+                                                        handleAIAudio(result.data.next_question.ai_audio);
+                                                        updateProgress(result.data.next_question.question_number, result.data.next_question.total_questions);
+                                                    } else if (result.data.next_question?.status === 'completed') {
+                                                        addMessage('ai', 'Interview completed! Generating your comprehensive report...');
+                                                        setTimeout(() => generateReport(), 3000);
+                                                    }
+                                                }, 2000);
+                                            } else if (result.data.status === 'completed') {
+                                                addMessage('ai', 'Interview completed! Generating your comprehensive report...');
+                                                setTimeout(() => generateReport(), 3000);
+                                            }
+                                        } else {
+                                            showError('Failed to submit answer: ' + result.error);
+                                        }
+                                    } catch (error) {
+                                        showError('Error submitting answer: ' + error.message);
+                                    } finally {
+                                        updateAIStatus('ready', 'Ready for next response');
+                                    }
+                                }
+                                
+                                function playAIAudio() {
+                                    if (currentAIAudio) {
+                                        currentAIAudio.currentTime = 0;
+                                        currentAIAudio.play();
+                                    }
+                                }
+                                
+                                function toggleAudio() {
+                                    audioEnabled = !audioEnabled;
+                                    const btn = event.target;
+                                    btn.textContent = audioEnabled ? '🔊 Audio' : '🔇 Audio';
+                                }
+                                
+                                function endInterview() {
+                                    if (confirm('Are you sure you want to end the interview?')) {
+                                        generateReport();
+                                    }
+                                }
+                                
+                                async function generateReport() {
+                                    updateAIStatus('processing', 'Generating final report...');
+                                    
+                                    try {
+                                        const response = await fetch('/generate-report');
+                                        const result = await response.json();
+                                        
+                                        if (result.success) {
+                                            sessionStorage.setItem('interviewReport', JSON.stringify(result.data));
+                                            window.location.href = '/interview-results';
+                                        } else {
+                                            showError('Failed to generate report: ' + result.error);
+                                        }
+                                    } catch (error) {
+                                        showError('Error generating report: ' + error.message);
+                                    }
+                                }
+                                
+                                function finishAnswering() {
+                                    // Stop recording and live transcription
+                                    if (isRecording) {
+                                        stopRecording();
+                                    }
+                                    
+                                    // Update UI to show ready for submission
+                                    document.getElementById('recording-status').textContent = '✅ Recording finished. Review your answer and submit.';
+                                    updateAIStatus('ready', 'Ready to submit your response');
+                                    
+                                    // Focus on the text area so user can review/edit
+                                    document.getElementById('text-response').focus();
+                                }
+                                
+                                function showError(message) {
+                                    console.error(message);
+                                    alert(message);
+                                }
+                            </script>
+                        </body>
+                        </html>

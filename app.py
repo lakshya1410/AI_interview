@@ -4,7 +4,7 @@ import time
 from werkzeug.utils import secure_filename
 from models.resume_matcher import ResumeMatcher
 from models.question_generator import QuestionGenerator
-from models.interview import InterviewSimulator
+from models.interview import EnhancedInterviewSimulator
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -17,7 +17,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 try:
     resume_matcher = ResumeMatcher()
     question_generator = QuestionGenerator()
-    interview_simulator = InterviewSimulator()
+    interview_simulator = EnhancedInterviewSimulator()
     print("All components initialized successfully")
 except Exception as e:
     print(f"Error initializing components: {e}")
@@ -148,7 +148,7 @@ def submit_answer():
         answer_text = data.get('answer_text')
         audio_duration = data.get('audio_duration', 0)
         
-        result = interview_simulator.process_candidate_answer(answer_text, audio_duration)
+        result = interview_simulator.process_answer(answer_text, audio_duration)
         return jsonify({"success": True, "data": result})
         
     except Exception as e:
@@ -173,37 +173,28 @@ def transcribe_audio():
         audio_file.save(temp_path)
         
         # Transcribe
-        transcription = interview_simulator.transcribe_audio(temp_path)
+        transcription_result = interview_simulator.transcribe_audio_enhanced(temp_path)
         
         # Clean up
         if os.path.exists(temp_path):
             os.remove(temp_path)
         
-        return jsonify({"success": True, "transcription": transcription})
+        if transcription_result.get('success'):
+            return jsonify({"success": True, "transcription": transcription_result.get('transcription', '')})
+        else:
+            return jsonify({"success": False, "error": transcription_result.get('error', 'Transcription failed')})
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
-@app.route('/end-interview', methods=['POST'])
-def end_interview():
-    """End the current interview"""
-    if not interview_simulator:
-        return jsonify({"success": False, "error": "Interview simulator not available"})
-    
-    try:
-        result = interview_simulator.end_interview()
-        return jsonify({"success": True, "data": result})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-@app.route('/generate-report', methods=['POST'])
+@app.route('/generate-report', methods=['GET'])
 def generate_report():
     """Generate final interview report"""
     if not interview_simulator:
         return jsonify({"success": False, "error": "Interview simulator not available"})
     
     try:
-        report = interview_simulator.generate_final_report()
+        report = interview_simulator.generate_comprehensive_report()
         return jsonify({"success": True, "data": report})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
